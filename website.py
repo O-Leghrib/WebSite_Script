@@ -4,6 +4,7 @@ import csv
 import io
 import pandas as pd
 import os
+import re
 
 app = Flask(__name__)
 
@@ -12,8 +13,14 @@ def connect_db():
         host="localhost",
         user="root",
         password="1705",
-        database="profiles_data"
+        database="profiles_info"
     )
+
+def clean_illegal_chars(value):
+    if isinstance(value, str):
+        # Remove all control characters except \n, \r, \t
+        return re.sub(r'[\x00-\x08\x0b-\x0c\x0e-\x1f\x7f]', '', value)
+    return value
 
 @app.route('/', methods=['GET', 'POST'])
 def search():
@@ -37,6 +44,7 @@ def search():
             announce.title,
             announce.description,
             announce.created_at AS announce_created,
+            announce.city,
             announce.price
         FROM person
         LEFT JOIN announce ON person.user_id = announce.user_id
@@ -50,10 +58,11 @@ def search():
             announce.title LIKE %s OR
             announce.description LIKE %s OR
             announce.created_at LIKE %s OR
+            announce.city LIKE %s OR
             announce.price LIKE %s
         """
         wildcard = f"%{keyword}%"
-        params = [wildcard] * 10
+        params = [wildcard] * 11
         cursor.execute(query, params)
         results = cursor.fetchall()
         result_count = len(results)
@@ -65,8 +74,9 @@ def search():
                 writer.writeheader()
                 writer.writerows(results)
 
-            # Save Excel
+            # Save Excel (clean illegal characters)
             df = pd.DataFrame(results)
+            df = df.applymap(clean_illegal_chars)
             df.to_excel('temp_results.xlsx', index=False)
 
         cursor.close()

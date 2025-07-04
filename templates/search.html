@@ -149,6 +149,7 @@
                             <th>Title</th>
                             <th>Description</th>
                             <th>Created (Announce)</th>
+                            <th>City</th>
                             <th>Price</th>
                         </tr>
                     </thead>
@@ -164,7 +165,9 @@
                             <td>{{ row.title or '-' }}</td>
                             <td>{{ row.description or '-' }}</td>
                             <td>{{ row.announce_created or '-' }}</td>
+                            <td>{{ row.city or '-' }}</td>
                             <td>{{ row.price if row.price is not none else '-' }}</td>
+                            
                         </tr>
                     {% endfor %}
                     </tbody>
